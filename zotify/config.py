@@ -5,7 +5,7 @@ import base64
 import sys
 import re
 import requests
-from librespot.audio.decoders import VorbisOnlyAudioQuality
+from librespot.audio.decoders import AudioQuality, VorbisOnlyAudioQuality, LosslessOnlyAudioQuality
 from librespot.core import Session, OAuth
 from librespot.mercury import MercuryRequests
 from librespot.proto.Authentication_pb2 import AuthenticationType
@@ -617,13 +617,18 @@ class Zotify:
     @classmethod
     def get_content_stream(cls, content_id, quality):
         try:
-            return cls.SESSION.content_feeder().load(content_id, VorbisOnlyAudioQuality(quality), False, None)
+            if quality == AudioQuality.LOSSLESS:
+                picker = LosslessOnlyAudioQuality(quality)
+            else:
+                picker = VorbisOnlyAudioQuality(quality)
+            
+            return cls.SESSION.content_feeder().load(content_id, picker, False, None)
         except RuntimeError as e:
             if 'Failed fetching audio key!' in e.args[0]:
                 gid, fileid = e.args[0].split('! ')[1].split(', ')
                 Printer.hashtaged(PrintChannel.ERROR, 'FAILED TO FETCH AUDIO KEY\n' +\
-                                                      'MAY BE CAUSED BY RATE LIMITS - CONSIDER INCREASING `BULK_WAIT_TIME`\n' +\
-                                                     f'GID: {gid[5:]} - File_ID: {fileid[8:]}')
+                                                    'MAY BE CAUSED BY RATE LIMITS - CONSIDER INCREASING `BULK_WAIT_TIME`\n' +\
+                                                    f'GID: {gid[5:]} - File_ID: {fileid[8:]}')
             else:        
                 raise e
     

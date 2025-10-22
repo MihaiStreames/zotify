@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-  "setuptools >= 40.9.0",
+  "setuptools >= 80.9.0",
   "wheel",
 ]
 build-backend = "setuptools.build_meta"
@@ -10,7 +10,7 @@ name = "zotify"
 description = "A highly customizable music and podcast downloader"
 authors = [
   { name = "Zotify Contributors" },
-  { name = "Googolplexed" },
+  { name = "Sincos" },
 ]
 requires-python = ">=3.10"
 license = "Unlicense"

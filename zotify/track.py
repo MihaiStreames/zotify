@@ -365,13 +365,19 @@ def download_track(mode: str, track_id: str, extra_keys: dict | None = None, pba
                 Path(track_path_temp).unlink()
 
 
-def convert_audio_format(track_path) -> None:
+def convert_audio_format(track_path) -> str:
     """ Converts raw audio into playable file """
     temp_track_path = f'{PurePath(track_path).parent}.tmp'
     shutil.move(str(track_path), temp_track_path)
     
     download_format = Zotify.CONFIG.get_download_format().lower()
     file_codec = CODEC_MAP.get(download_format, 'copy')
+    
+    if download_format == 'flac' and file_codec == 'flac':
+        # source is FLAC, just rename back
+        shutil.move(str(temp_track_path), str(track_path))
+        return fmt_duration(0)
+    
     bitrate = None
     if file_codec != 'copy':
         bitrate = Zotify.CONFIG.get_transcode_bitrate()
@@ -382,7 +388,7 @@ def convert_audio_format(track_path) -> None:
                 'high': '160k',
                 'very_high': '320k'
             }
-            bitrate = bitrates[Zotify.CONFIG.get_download_quality()]
+            bitrate = bitrates.get(Zotify.CONFIG.get_download_quality(), '320k')
     
     output_params = ['-c:a', file_codec]
     if bitrate is not None:
