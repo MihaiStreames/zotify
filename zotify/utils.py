@@ -12,7 +12,7 @@ from pathlib import Path, PurePath
 
 from zotify.config import Zotify
 from zotify.const import ALBUMARTIST, ARTIST, TRACKTITLE, ALBUM, YEAR, DISCNUMBER, TRACKNUMBER, ARTWORK, \
-    TOTALTRACKS, TOTALDISCS, EXT_MAP, LYRICS, COMPILATION, GENRE, EXT_MAP, MP3_CUSTOM_TAG_PREFIX, M4A_CUSTOM_TAG_PREFIX
+    TOTALTRACKS, TOTALDISCS, LYRICS, COMPILATION, GENRE, EXT_MAP, MP3_CUSTOM_TAG_PREFIX, M4A_CUSTOM_TAG_PREFIX
 from zotify.termoutput import PrintChannel, Printer
 
 
@@ -26,7 +26,7 @@ def create_download_directory(dir_path: str | PurePath) -> None:
     if Zotify.CONFIG.get_disable_directory_archives():
         return
     if not Path(hidden_file_path).is_file():
-        with open(hidden_file_path, 'w', encoding='utf-8') as f:
+        with open(hidden_file_path, 'w', encoding='utf-8'):
             pass
 
 
@@ -238,11 +238,9 @@ def get_audio_tags(track_path: Path) -> tuple[tuple, tuple]:
     utag_vals = []
     for utag in unreliable_tags:
         val = None
-        fetch_method = "legit"
         try:
             val = tags[utag].val
         except:
-            fetch_method = "hacky"
             if utag in tag_dict:
                 val = tag_dict[utag]
         

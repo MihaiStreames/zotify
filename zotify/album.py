@@ -1,5 +1,5 @@
 from zotify.config import Zotify
-from zotify.const import ALBUM_URL, ARTIST_URL, ITEMS, ARTISTS, NAME, ID, DISC_NUMBER, ALBUM_TYPE, COMPILATION, AVAIL_MARKETS
+from zotify.const import ALBUM_URL, ARTIST_URL, ITEMS, ARTISTS, NAME, ID, DISC_NUMBER, ALBUM_TYPE, COMPILATION
 from zotify.termoutput import Printer, PrintChannel, Loader
 from zotify.track import download_track
 from zotify.utils import fix_filename

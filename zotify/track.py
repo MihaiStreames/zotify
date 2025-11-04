@@ -53,7 +53,7 @@ def get_track_metadata(track_id) -> dict[str, list[str] | str | int | bool]:
     with Loader(PrintChannel.PROGRESS_INFO, "Fetching track information..."):
         (raw, info) = Zotify.invoke_url(f'{TRACK_URL}?ids={track_id}&market=from_token')
         
-        if not TRACKS in info:
+        if TRACKS not in info:
             raise ValueError(f'Invalid response from TRACK_URL:\n{raw}')
         
         try:
@@ -165,11 +165,11 @@ def update_track_metadata(track_id: str, track_path: Path, track_resp: dict) -> 
         return
     
     try:
-        Printer.debug(f'Metadata Mismatches:', mismatches)
+        Printer.debug('Metadata Mismatches:', mismatches)
         set_audio_tags(track_path, track_metadata, total_discs, genres, lyrics)
         set_music_thumbnail(track_path, track_metadata[IMAGE_URL], mode="single")
         Printer.hashtaged(PrintChannel.DOWNLOADS, f'VERIFIED:  METADATA FOR "{track_path.relative_to(Zotify.CONFIG.get_root_path())}"\n' +\
-                                                  f'(UPDATED TAGS TO MATCH CURRENT API METADATA)')
+                                                  '(UPDATED TAGS TO MATCH CURRENT API METADATA)')
     except Exception as e:
         Printer.hashtaged(PrintChannel.ERROR, "FAILED TO WRITE METADATA\n" +\
                                               "Ensure FFMPEG is installed and added to your PATH")

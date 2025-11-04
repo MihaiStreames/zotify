@@ -157,7 +157,7 @@ class Config:
         # Load config from config.json
         Path(PurePath(full_config_path).parent).mkdir(parents=True, exist_ok=True)
         if not Path(full_config_path).exists():
-            if cls.Values[DEBUG] == False: del cls.Values[DEBUG]
+            if not cls.Values[DEBUG]: del cls.Values[DEBUG]
             with open(full_config_path, 'w', encoding='utf-8') as config_file:
                 json.dump(cls.get_default_json(), config_file, indent=4)
             Printer.hashtaged(PrintChannel.MANDATORY, f"config.json saved to {full_config_path.resolve().parent}")
@@ -603,7 +603,7 @@ class Zotify:
                 cls.SESSION = session_builder.stored(auth_as_bytes).create()
                 return
             except:
-                Printer.hashtaged(PrintChannel.MANDATORY, f"Login via commandline args failed! Falling back to interactive login")
+                Printer.hashtaged(PrintChannel.MANDATORY, "Login via commandline args failed! Falling back to interactive login")
         
         def oauth_print(url):
             Printer.new_print(PrintChannel.MANDATORY, f"Click on the following link to login:\n{url}")
