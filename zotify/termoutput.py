@@ -43,7 +43,7 @@ class PrintCategory(Enum):
     NONE = ""
     GENERAL = "\n"
     LOADER = "\n\t"
-    LOADER_CYCLE = f"{START_OF_PREV_LINE*2}\t"
+    LOADER_CYCLE = f"{START_OF_PREV_LINE * 2}\t"
     HASHTAG = "\n###   "
     JSON = "\n#"
     DEBUG = "\nDEBUG\n"
@@ -65,7 +65,7 @@ class Printer:
 
     @staticmethod
     def _api_shrink(obj: list | tuple | dict) -> dict:
-        """ Shrinks API objects to remove data unnecessary data for debugging """
+        """Shrinks API objects to remove data unnecessary data for debugging"""
 
         def shrink(k: str) -> str:
             if k in {AVAIL_MARKETS, IMAGES}:
@@ -95,24 +95,36 @@ class Printer:
         return obj
 
     @staticmethod
-    def _print_prefixes(msg: str, category: PrintCategory, channel: PrintChannel) -> tuple[str, PrintCategory]:
+    def _print_prefixes(
+        msg: str, category: PrintCategory, channel: PrintChannel
+    ) -> tuple[str, PrintCategory]:
         if category is PrintCategory.HASHTAG:
-            if channel in {PrintChannel.WARNING, PrintChannel.ERROR, PrintChannel.API_ERROR,
-                           PrintChannel.SKIPPING,}:
+            if channel in {
+                PrintChannel.WARNING,
+                PrintChannel.ERROR,
+                PrintChannel.API_ERROR,
+                PrintChannel.SKIPPING,
+            }:
                 msg = channel.name + ":  " + msg
-            msg =  msg.replace("\n", "   ###\n###   ") + "   ###"
+            msg = msg.replace("\n", "   ###\n###   ") + "   ###"
             if channel is PrintChannel.DEBUG:
                 msg = category.value.replace("\n", "", 1) + msg
                 category = PrintCategory.DEBUG
         elif category is PrintCategory.JSON:
-            msg = "#" * (Printer._term_cols()-1) + "\n" + msg + "\n" + "#" * Printer._term_cols()
+            msg = "#" * (Printer._term_cols() - 1) + "\n" + msg + "\n" + "#" * Printer._term_cols()
 
         global LAST_PRINT
         if LAST_PRINT is PrintCategory.DEBUG and category is PrintCategory.DEBUG:
             pass
-        elif LAST_PRINT in {PrintCategory.LOADER, PrintCategory.LOADER_CYCLE} and category is PrintCategory.LOADER:
+        elif (
+            LAST_PRINT in {PrintCategory.LOADER, PrintCategory.LOADER_CYCLE}
+            and category is PrintCategory.LOADER
+        ):
             msg = "\n" + PrintCategory.LOADER_CYCLE.value + msg
-        elif LAST_PRINT in {PrintCategory.LOADER, PrintCategory.LOADER_CYCLE} and "LOADER" not in category.name:
+        elif (
+            LAST_PRINT in {PrintCategory.LOADER, PrintCategory.LOADER_CYCLE}
+            and "LOADER" not in category.name
+        ):
             msg = category.value.replace("\n", "", 1) + msg
         else:
             msg = category.value + msg
@@ -129,7 +141,13 @@ class Printer:
                 ACTIVE_LOADER.pause()
 
     @staticmethod
-    def new_print(channel: PrintChannel, msg: str, category: PrintCategory = PrintCategory.NONE, skip_toggle: bool = False, end: str = "\n") -> None:
+    def new_print(
+        channel: PrintChannel,
+        msg: str,
+        category: PrintCategory = PrintCategory.NONE,
+        skip_toggle: bool = False,
+        end: str = "\n",
+    ) -> None:
         global LAST_PRINT
         if channel != PrintChannel.MANDATORY:
             from zotify.config import Zotify
@@ -151,14 +169,20 @@ class Printer:
         user_input = ""
         Printer._toggle_active_loader()
         while len(user_input) == 0:
-            Printer.new_print(PrintChannel.MANDATORY, prompt, PrintCategory.GENERAL, end="", skip_toggle=True)
+            Printer.new_print(
+                PrintChannel.MANDATORY, prompt, PrintCategory.GENERAL, end="", skip_toggle=True
+            )
             user_input = str(input())
         Printer._toggle_active_loader()
         return user_input
 
     # Print Wrappers
     @staticmethod
-    def json_dump(obj: dict, channel: PrintChannel = PrintChannel.ERROR, category: PrintCategory = PrintCategory.JSON) -> None:
+    def json_dump(
+        obj: dict,
+        channel: PrintChannel = PrintChannel.ERROR,
+        category: PrintCategory = PrintCategory.JSON,
+    ) -> None:
         obj = Printer._api_shrink(obj)
         Printer.new_print(channel, pformat(obj, indent=2), category)
 
@@ -180,44 +204,63 @@ class Printer:
         Printer.new_print(PrintChannel.ERROR, msg, PrintCategory.GENERAL)
 
     @staticmethod
-    def depreciated_warning(option_string: str, help_msg: str = None, CONFIG = True) -> None:
-        Printer.new_print(PrintChannel.MANDATORY, "\n" +\
-        "###   WARNING: " + ("CONFIG" if CONFIG else "ARGUMENT") + f" `{option_string}` IS DEPRECIATED, IGNORING   ###\n" +\
-        "###   THIS WILL BE REMOVED IN FUTURE VERSIONS   ###\n" +\
-        f"###   {help_msg}   ###\n" if  help_msg else "\n")
+    def depreciated_warning(option_string: str, help_msg: str = None, CONFIG=True) -> None:
+        Printer.new_print(
+            PrintChannel.MANDATORY,
+            "\n"
+            + "###   WARNING: "
+            + ("CONFIG" if CONFIG else "ARGUMENT")
+            + f" `{option_string}` IS DEPRECIATED, IGNORING   ###\n"
+            + "###   THIS WILL BE REMOVED IN FUTURE VERSIONS   ###\n"
+            + f"###   {help_msg}   ###\n"
+            if help_msg
+            else "\n",
+        )
 
     @staticmethod
     def table(title: str, headers: tuple[str], tabular_data: list) -> None:
         Printer.hashtaged(PrintChannel.MANDATORY, title)
-        Printer.new_print(PrintChannel.MANDATORY, tabulate(tabular_data, headers=headers, tablefmt='pretty'))
+        Printer.new_print(
+            PrintChannel.MANDATORY, tabulate(tabular_data, headers=headers, tablefmt="pretty")
+        )
 
     # Prefabs
     @staticmethod
     def clear() -> None:
-        """ Clear the console window """
+        """Clear the console window"""
         if platform.system() == WINDOWS_SYSTEM:
-            system('cls')
+            system("cls")
         else:
-            system('clear')
+            system("clear")
 
     @staticmethod
     def splash() -> None:
-        """ Displays splash screen """
-        Printer.new_print(PrintChannel.SPLASH,
-        "    ███████╗ ██████╗ ████████╗██╗███████╗██╗   ██╗"+"\n"+\
-        "    ╚══███╔╝██╔═══██╗╚══██╔══╝██║██╔════╝╚██╗ ██╔╝"+"\n"+\
-        "      ███╔╝ ██║   ██║   ██║   ██║█████╗   ╚████╔╝ "+"\n"+\
-        "     ███╔╝  ██║   ██║   ██║   ██║██╔══╝    ╚██╔╝  "+"\n"+\
-        "    ███████╗╚██████╔╝   ██║   ██║██║        ██║   "+"\n"+\
-        "    ╚══════╝ ╚═════╝    ╚═╝   ╚═╝╚═╝        ╚═╝   "+"\n" )
+        """Displays splash screen"""
+        Printer.new_print(
+            PrintChannel.SPLASH,
+            "    ███████╗ ██████╗ ████████╗██╗███████╗██╗   ██╗"
+            + "\n"
+            + "    ╚══███╔╝██╔═══██╗╚══██╔══╝██║██╔════╝╚██╗ ██╔╝"
+            + "\n"
+            + "      ███╔╝ ██║   ██║   ██║   ██║█████╗   ╚████╔╝ "
+            + "\n"
+            + "     ███╔╝  ██║   ██║   ██║   ██║██╔══╝    ╚██╔╝  "
+            + "\n"
+            + "    ███████╗╚██████╔╝   ██║   ██║██║        ██║   "
+            + "\n"
+            + "    ╚══════╝ ╚═════╝    ╚═╝   ╚═╝╚═╝        ╚═╝   "
+            + "\n",
+        )
 
     @staticmethod
     def search_select() -> None:
-        """ Displays splash screen """
-        Printer.new_print(PrintChannel.MANDATORY, "\n" +\
-        "> SELECT A DOWNLOAD OPTION BY ID\n" +
-        "> SELECT A RANGE BY ADDING A DASH BETWEEN BOTH ID's\n" +
-        "> OR PARTICULAR OPTIONS BY ADDING A COMMA BETWEEN ID's\n"
+        """Displays splash screen"""
+        Printer.new_print(
+            PrintChannel.MANDATORY,
+            "\n"
+            + "> SELECT A DOWNLOAD OPTION BY ID\n"
+            + "> SELECT A RANGE BY ADDING A DASH BETWEEN BOTH ID's\n"
+            + "> OR PARTICULAR OPTIONS BY ADDING A COMMA BETWEEN ID's\n",
         )
 
     @staticmethod
@@ -226,14 +269,33 @@ class Printer:
 
     # Progress Bars
     @staticmethod
-    def pbar(iterable=None, desc=None, total=None, unit='it',
-            disable=False, unit_scale=False, unit_divisor=1000, pos=1) -> tqdm:
+    def pbar(
+        iterable=None,
+        desc=None,
+        total=None,
+        unit="it",
+        disable=False,
+        unit_scale=False,
+        unit_divisor=1000,
+        pos=1,
+    ) -> tqdm:
         if iterable and len(iterable) == 1 and len(ACTIVE_PBARS) > 0:
-            disable = True # minimize clutter
-        new_pbar = tqdm(iterable=iterable, desc=desc, total=total, disable=disable, position=pos,
-                        unit=unit, unit_scale=unit_scale, unit_divisor=unit_divisor, leave=False)
-        if new_pbar.disable: new_pbar.pos = -pos
-        if not new_pbar.disable: ACTIVE_PBARS.append(new_pbar)
+            disable = True  # minimize clutter
+        new_pbar = tqdm(
+            iterable=iterable,
+            desc=desc,
+            total=total,
+            disable=disable,
+            position=pos,
+            unit=unit,
+            unit_scale=unit_scale,
+            unit_divisor=unit_divisor,
+            leave=False,
+        )
+        if new_pbar.disable:
+            new_pbar.pos = -pos
+        if not new_pbar.disable:
+            ACTIVE_PBARS.append(new_pbar)
         return new_pbar
 
     @staticmethod
@@ -243,10 +305,13 @@ class Printer:
 
         if not skip_pop and pbar_stack and pbar_stack[-1].n == pbar_stack[-1].total:
             pbar_stack.pop()
-            if not pbar_stack[-1].disable: ACTIVE_PBARS.pop()
+            if not pbar_stack[-1].disable:
+                ACTIVE_PBARS.pop()
 
     @staticmethod
-    def pbar_position_handler(default_pos: int, pbar_stack: list[tqdm] | None) -> tuple[int, list[tqdm]]:
+    def pbar_position_handler(
+        default_pos: int, pbar_stack: list[tqdm] | None
+    ) -> tuple[int, list[tqdm]]:
         pos = default_pos
         if pbar_stack is not None:
             pos = -pbar_stack[-1].pos + (0 if pbar_stack[-1].disable else -2)
@@ -270,7 +335,7 @@ class Loader:
     # load symbol from:
     # https://stackoverflow.com/questions/22029562/python-how-to-make-simple-animated-loading-while-process-is-running
 
-    def __init__(self, chan, desc="Loading...", end='', timeout=0.1, mode='prog'):
+    def __init__(self, chan, desc="Loading...", end="", timeout=0.1, mode="prog"):
         """
         A loader-like context manager
 
@@ -286,14 +351,29 @@ class Loader:
         self.category = PrintCategory.LOADER
 
         self._thread = Thread(target=self._animate, daemon=True)
-        if mode == 'std1':
+        if mode == "std1":
             self.steps = ["⢿", "⣻", "⣽", "⣾", "⣷", "⣯", "⣟", "⡿"]
-        elif mode == 'std2':
-            self.steps = ["◜","◝","◞","◟"]
-        elif mode == 'std3':
-            self.steps = ["😐 ","😐 ","😮 ","😮 ","😦 ","😦 ","😧 ","😧 ","🤯 ","💥 ","✨ ","\u3000 ","\u3000 ","\u3000 "]
-        elif mode == 'prog':
-            self.steps = ["[∙∙∙]","[●∙∙]","[∙●∙]","[∙∙●]","[∙∙∙]"]
+        elif mode == "std2":
+            self.steps = ["◜", "◝", "◞", "◟"]
+        elif mode == "std3":
+            self.steps = [
+                "😐 ",
+                "😐 ",
+                "😮 ",
+                "😮 ",
+                "😦 ",
+                "😦 ",
+                "😧 ",
+                "😧 ",
+                "🤯 ",
+                "💥 ",
+                "✨ ",
+                "\u3000 ",
+                "\u3000 ",
+                "\u3000 ",
+            ]
+        elif mode == "prog":
+            self.steps = ["[∙∙∙]", "[●∙∙]", "[∙●∙]", "[∙∙●]", "[∙∙∙]"]
 
         self.done = False
         self.paused = False
@@ -317,7 +397,7 @@ class Loader:
     def start(self):
         self.store_active_loader()
         self._thread.start()
-        sleep(self.timeout*2) #guarantee _animate can print at least once
+        sleep(self.timeout * 2)  # guarantee _animate can print at least once
         return self
 
     def _animate(self):
@@ -334,7 +414,7 @@ class Loader:
 
     def stop(self):
         self.done = True
-        while not self.dead: #guarantee _animate has finished
+        while not self.dead:  # guarantee _animate has finished
             sleep(self.timeout)
         self.category = PrintCategory.LOADER
         if self.end != "":
@@ -347,7 +427,7 @@ class Loader:
     def resume(self):
         self.category = PrintCategory.LOADER
         self.paused = False
-        sleep(self.timeout*2) #guarantee _animate can print at least once
+        sleep(self.timeout * 2)  # guarantee _animate can print at least once
 
     def __exit__(self, exc_type, exc_value, tb):
         # handle exceptions with those variables ^
