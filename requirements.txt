@@ -61,7 +61,7 @@ ifaddr==0.2.0 \
     --hash=sha256:085e0305cfe6f16ab12d72e2024030f5d52674afad6911bb1eee207177b8a748 \
     --hash=sha256:cc0cbfcaabf765d44595825fb96a99bb12c79716b73b44330ea38ee2b0c4aed4
     # via zeroconf
-librespot @ git+https://github.com/Masterolic/librespot-python.git@70d3de5b5e2c3045b193f7d6264ccaa0c8ed0bd1
+librespot @ git+https://github.com/kokarare1212/librespot-python@acd633d3eb26f7b61b21e5049cabb236b8f1298e
     # via zotify
 music-tag==0.4.3 \
     --hash=sha256:0aab6e6eeda8df0f5316ec2d2190bd74561b7e03562ab091ce8d5687cdbcfff6
