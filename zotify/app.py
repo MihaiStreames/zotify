@@ -271,9 +271,26 @@ def client(args: Namespace) -> None:
         "very_high": AudioQuality.VERY_HIGH,
         "lossless": AudioQuality.LOSSLESS,
     }
-    Zotify.DOWNLOAD_QUALITY = quality_options.get(
-        Zotify.CONFIG.get_download_quality(), quality_options["auto"]
-    )
+
+    requested_quality = Zotify.CONFIG.get_download_quality()
+    Zotify.DOWNLOAD_QUALITY = quality_options.get(requested_quality, quality_options["auto"])
+
+    # Check HiFi capability when lossless is requested
+    if requested_quality == "lossless":
+        if not Zotify.check_hifi():
+            Printer.hashtaged(
+                PrintChannel.WARNING,
+                "LOSSLESS QUALITY REQUESTED BUT HIFI NOT AVAILABLE\n"
+                + "Your account may not have HiFi/lossless streaming enabled.\n"
+                + "Falling back to VERY_HIGH quality. Check your Spotify subscription.\n"
+                + f"User attributes: {Zotify.get_user_attributes()}"
+            )
+            Zotify.DOWNLOAD_QUALITY = AudioQuality.VERY_HIGH
+        else:
+            Printer.hashtaged(
+                PrintChannel.MANDATORY,
+                "HIFI/LOSSLESS QUALITY ENABLED - FLAC downloads available"
+            )
 
     if args.file_of_urls:
         urls: list[str] = []

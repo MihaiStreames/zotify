@@ -902,3 +902,18 @@ class Zotify:
     @classmethod
     def check_premium(cls) -> bool:
         return cls.SESSION.get_user_attribute(TYPE) == PREMIUM
+
+    @classmethod
+    def check_hifi(cls) -> bool:
+        """Check if user has HiFi/lossless streaming capability"""
+        from zotify.const import HIGH_QUALITY, HIFI_OPTIN
+        # Check various HiFi indicators in user attributes
+        high_quality = cls.SESSION.get_user_attribute(HIGH_QUALITY)
+        hifi_optin = cls.SESSION.get_user_attribute(HIFI_OPTIN)
+        # high-quality = "1" indicates HiFi capability
+        return high_quality == "1" or hifi_optin == "1"
+
+    @classmethod
+    def get_user_attributes(cls) -> dict:
+        """Get all user attributes for debugging"""
+        return cls.SESSION._Session__user_attributes
