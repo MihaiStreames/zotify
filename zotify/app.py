@@ -275,22 +275,13 @@ def client(args: Namespace) -> None:
     requested_quality = Zotify.CONFIG.get_download_quality()
     Zotify.DOWNLOAD_QUALITY = quality_options.get(requested_quality, quality_options["auto"])
 
-    # Check HiFi capability when lossless is requested
+    # For lossless quality, just inform the user - librespot-python will try to fetch FLAC
+    # via AUDIO_FILES extension and will naturally fall back if unavailable
     if requested_quality == "lossless":
-        if not Zotify.check_hifi():
-            Printer.hashtaged(
-                PrintChannel.WARNING,
-                "LOSSLESS QUALITY REQUESTED BUT HIFI NOT AVAILABLE\n"
-                + "Your account may not have HiFi/lossless streaming enabled.\n"
-                + "Falling back to VERY_HIGH quality. Check your Spotify subscription.\n"
-                + f"User attributes: {Zotify.get_user_attributes()}"
-            )
-            Zotify.DOWNLOAD_QUALITY = AudioQuality.VERY_HIGH
-        else:
-            Printer.hashtaged(
-                PrintChannel.MANDATORY,
-                "HIFI/LOSSLESS QUALITY ENABLED - FLAC downloads available"
-            )
+        Printer.hashtaged(
+            PrintChannel.MANDATORY,
+            "LOSSLESS QUALITY REQUESTED - Will attempt to download FLAC via PlayPlay DRM"
+        )
 
     if args.file_of_urls:
         urls: list[str] = []

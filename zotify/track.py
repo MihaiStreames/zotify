@@ -5,6 +5,7 @@ import uuid
 
 import ffmpy
 from librespot.metadata import TrackId
+from librespot.audio.format import SuperAudioFormat
 
 from zotify import __version__
 from zotify.config import Zotify
@@ -434,6 +435,23 @@ def download_track(
                         "SKIPPING SONG - FAILED TO GET CONTENT STREAM\n" + f"Track_ID: {track_id}",
                     )
                     return
+
+                # Detect source codec and update path extension if needed
+                source_codec = stream.input_stream.codec()
+                download_format = Zotify.CONFIG.get_download_format().lower()
+
+                # If source is FLAC and download_format is "copy", use .flac extension
+                if source_codec == SuperAudioFormat.FLAC and download_format == "copy":
+                    Printer.debug(f"Source is FLAC, updating extension from {track_path.suffix} to .flac")
+                    track_path = PurePath(str(track_path).rsplit('.', 1)[0] + ".flac")
+                    # Update temp path too if using temp directory
+                    if Zotify.CONFIG.get_temp_download_dir() != "":
+                        track_path_temp = PurePath(Zotify.CONFIG.get_temp_download_dir()).joinpath(
+                            f"zotify_{str(uuid.uuid4())}_{track_id}.flac"
+                        )
+                    else:
+                        track_path_temp = track_path
+
                 create_download_directory(filedir)
                 total_size = stream.input_stream.size
 
@@ -475,7 +493,7 @@ def download_track(
                 lyrics = handle_lyrics(track_id, filedir, track_metadata)
 
                 # no metadata is written to track prior to conversion
-                time_elapsed_ffmpeg = convert_audio_format(track_path_temp)
+                time_elapsed_ffmpeg = convert_audio_format(track_path_temp, source_codec)
 
                 if track_path_temp != track_path:
                     if Path(track_path).exists():
@@ -525,13 +543,19 @@ def download_track(
                 Path(track_path_temp).unlink()
 
 
-def convert_audio_format(track_path) -> str:
+def convert_audio_format(track_path, source_codec=None) -> str:
     """Converts raw audio into playable file"""
     temp_track_path = f"{PurePath(track_path).parent}.tmp"
     shutil.move(str(track_path), temp_track_path)
 
     download_format = Zotify.CONFIG.get_download_format().lower()
     file_codec = CODEC_MAP.get(download_format, "copy")
+
+    # If source is FLAC and we're copying or outputting FLAC, no conversion needed
+    if source_codec == SuperAudioFormat.FLAC and download_format in ("copy", "flac"):
+        # source is FLAC and we want FLAC (or copy), just rename back
+        shutil.move(str(temp_track_path), str(track_path))
+        return fmt_duration(0)
 
     if download_format == "flac" and file_codec == "flac":
         # source is FLAC, just rename back
